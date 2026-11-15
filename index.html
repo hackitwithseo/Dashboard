@@ -1,0 +1,268 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Dashboard</title>
+  <link rel="icon" type="image/png" href="icon.png">
+  <link rel="stylesheet" href="style.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=Outfit:wght@400;500;600;700&display=swap" rel="stylesheet">
+</head>
+<body data-theme="cyberpunk">
+  <!-- Dynamic Background & Live Canvas -->
+  <div id="bg-overlay" class="bg-overlay"></div>
+  <canvas id="bg-canvas" class="bg-canvas"></canvas>
+
+  <div id="app-wrapper" class="app-wrapper">
+    <!-- TOP STATS BAR -->
+    <div class="top-stats-bar glass-box">
+      <div class="stat-group">
+        <div class="stat-item"><i class="fa-solid fa-microchip"></i> <span id="cpu-stat">10.5%</span></div>
+        <div class="stat-divider">|</div>
+        <div class="stat-item"><i class="fa-solid fa-memory"></i> <span id="ram-stat">9.4G</span></div>
+        <div class="stat-divider">|</div>
+        <div class="stat-item interactive-network" id="open-network-popup" title="View Network Traffic">
+          <i class="fa-solid fa-wifi"></i> <span class="net-online" id="net-status-text">ONLINE</span>
+        </div>
+      </div>
+      <button id="open-settings" title="Settings" class="settings-top-btn"><i class="fa-solid fa-gear"></i></button>
+    </div>
+
+    <!-- MAIN GRID CONTAINER -->
+    <div class="newtab-container">
+      <!-- LEFT TOP: Digital Clock -->
+      <div class="glass-box clock-box">
+        <div class="window-titlebar">Digital Clock</div>
+        <div class="clock-content">
+          <div id="time-display" class="time-text">00:00:00</div>
+        </div>
+      </div>
+
+      <!-- CENTER: Shortcuts Box -->
+      <div class="glass-box shortcuts-box">
+        <div class="box-header">
+          <span>Quick Shortcuts</span>
+        </div>
+        <div id="shortcuts-grid" class="shortcuts-grid"></div>
+      </div>
+
+      <!-- RIGHT: Streamers Tracker Widget -->
+      <div class="glass-box streamers-box">
+        <div class="box-header">
+          <span>Streamers</span>
+          <button id="sort-streamers-btn" class="sort-streamers-btn" title="Sort by Live Status">
+            <i class="fa-solid fa-arrow-down-wide-short"></i> <span id="sort-status-label">Live First</span>
+          </button>
+          <div id="streamer-pagination" class="streamer-pagination"></div>
+          <span class="live-dot-pulse"></span>
+        </div>
+        <div id="streamers-list" class="streamers-list"></div>
+      </div>
+
+      <!-- LEFT MIDDLE: Date Badge -->
+      <div class="glass-box date-box">
+        <i class="fa-regular fa-calendar-days"></i>
+        <span id="date-display">Loading date...</span>
+      </div>
+
+      <!-- LEFT BOTTOM: Dynamic YouTube Creator Feeds -->
+      <div class="glass-box media-box">
+        <div class="box-header">
+          <span>Latest Creator Uploads</span>
+        </div>
+        <div id="video-feed" class="video-feed">
+          <div class="video-card">
+            <i class="fa-brands fa-youtube video-icon"></i>
+            <div class="video-info">
+              <span class="video-title">No creators added yet. Add some in settings!</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- FLOATING HOVER PREVIEW TOOLTIP -->
+  <div id="video-preview-tooltip" class="video-preview-tooltip hidden">
+    <img id="preview-img" src="" alt="Thumbnail Preview">
+  </div>
+
+  <!-- NETWORK TRAFFIC POPUP MODAL -->
+  <div id="network-modal" class="modal hidden">
+    <div class="network-card-modal glass-box">
+      <div class="network-header">
+        <h2>Network Traffic</h2>
+        <button id="reset-network-stats" class="action-btn">Reset All</button>
+        <button id="close-network" class="modal-x-btn"><i class="fa-solid fa-xmark"></i></button>
+      </div>
+      <div class="network-body">
+        <div class="net-speeds-row">
+          <div class="net-speed-box">
+            <span class="speed-val" id="net-dl-speed">4.0</span>
+            <span class="speed-unit">Mbps<br><small>Download</small></span>
+          </div>
+          <div class="net-speed-box">
+            <span class="speed-val" id="net-ul-speed">127.0</span>
+            <span class="speed-unit">Kbps<br><small>Upload</small></span>
+          </div>
+        </div>
+
+        <div class="net-section-title">Session Total</div>
+        <div class="net-stat-row"><span>Uploaded:</span> <span id="sess-up">50.0 MB</span></div>
+        <div class="net-stat-row"><span>Downloaded:</span> <span id="sess-dl">2.00 GB</span></div>
+        <div class="net-stat-row"><span>Duration:</span> <span id="sess-dur">6h 34m</span></div>
+
+        <div class="net-section-title">Today's Total</div>
+        <div class="net-stat-row"><span>Uploaded:</span> <span id="today-up">&lt; 1 MB</span></div>
+        <div class="net-stat-row"><span>Downloaded:</span> <span id="today-dl">15.0 MB</span></div>
+
+        <div class="net-section-title">All-Time Total</div>
+        <div class="net-stat-row"><span>Uploaded:</span> <span id="total-up">1.08 GB</span></div>
+        <div class="net-stat-row"><span>Downloaded:</span> <span id="total-dl">30.45 GB</span></div>
+      </div>
+      <div class="network-footer">
+        <span>Network Interface: Auto</span>
+        <div class="net-badge-status" id="modal-conn-status">Internet Connected</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- PIXEL OFFLINE MODAL -->
+  <div id="offline-modal" class="modal hidden">
+    <div class="pixel-card-modal">
+      <button id="close-offline" class="pixel-close">&times;</button>
+      <div class="pixel-content">
+        <div class="pixel-text-left">
+          <h2 id="pixel-streamer-question">IS STREAMER LIVE RIGHT NOW?</h2>
+          <h1 class="pixel-nope">NOPE.</h1>
+        </div>
+        <div class="pixel-art-right">
+          <div class="pixel-coffee-mug">
+            <div class="steam-pixels"></div>
+            <div class="mug-body"></div>
+          </div>
+          <span class="pixel-tag">HE'S ON A REJUICER</span>
+        </div>
+      </div>
+      <div class="offline-twitch-banner">
+        <div class="twitch-badge">OFFLINE</div>
+        <p id="offline-banner-text">Check out the last stream recording on Twitch.</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- SETTINGS MODAL -->
+  <div id="settings-modal" class="modal hidden">
+    <div class="modal-content glass-box">
+      <div class="modal-header">
+        <h2>Dashboard Settings</h2>
+        <button id="close-settings" class="modal-x-btn"><i class="fa-solid fa-xmark"></i></button>
+      </div>
+      <div class="modal-body">
+        
+        <!-- EXPORT / IMPORT BACKUP -->
+        <div class="setting-section">
+          <h3>Backup & Data</h3>
+          <div class="backup-btn-group">
+            <button type="button" id="export-data-btn" class="action-btn-block"><i class="fa-solid fa-download"></i> Export Settings & Data</button>
+            <label for="import-data-file" class="action-btn-block import-label-btn"><i class="fa-solid fa-upload"></i> Import Settings & Data</label>
+            <input type="file" id="import-data-file" accept=".json" hidden>
+          </div>
+        </div>
+
+        <!-- TIME FORMAT SELECTOR -->
+        <div class="setting-section">
+          <h3>Clock Format</h3>
+          <div class="time-format-icon-group">
+            <button type="button" class="time-format-btn active" data-timeformat="24" title="24-Hour Format">
+              <i class="fa-regular fa-clock"></i>
+              <span>24 Hours</span>
+            </button>
+            <button type="button" class="time-format-btn" data-timeformat="12" title="12-Hour AM/PM Format">
+              <i class="fa-solid fa-clock"></i>
+              <span>12 Hours (AM/PM)</span>
+            </button>
+          </div>
+        </div>
+
+        <!-- INFINITE YOUTUBE CREATORS INTEGRATION -->
+        <div class="setting-section">
+          <h3>YouTube Creators (Infinite)</h3>
+          <div id="edit-yt-creators-list"></div>
+          <button type="button" id="add-yt-creator-btn" class="action-btn-block">+ Add Creator</button>
+        </div>
+
+        <!-- BACKGROUND WALLPAPER -->
+        <div class="setting-section">
+          <h3>Background Wallpaper</h3>
+          <select id="bg-mode-select" class="custom-select">
+            <option value="dots">Interactive Constellation Dots</option>
+            <option value="matrix">Matrix Rain</option>
+            <option value="waves">Cyber Waves</option>
+            <option value="starfield">Starfield Warp</option>
+            <option value="image">Custom Image (URL / File)</option>
+          </select>
+        </div>
+
+        <div id="image-bg-controls" class="bg-settings-group">
+          <input type="text" id="bg-url-input" placeholder="Paste Image URL..." class="setting-input">
+          <label for="bg-file-input" class="action-btn">Upload File</label>
+          <input type="file" id="bg-file-input" accept="image/*" hidden>
+          <button type="button" id="reset-bg-btn" class="delete-btn">Reset</button>
+        </div>
+
+        <!-- BACKGROUND OPACITY / TRANSPARENCY BAR -->
+        <div class="setting-section">
+          <h3>Background Box Transparency</h3>
+          <div class="scale-group">
+            <input type="range" id="opacity-slider" min="0.1" max="1" step="0.05" value="0.82">
+            <span id="opacity-val">82%</span>
+          </div>
+        </div>
+
+        <!-- COLOR THEME -->
+        <div class="setting-section">
+          <h3>Color Theme</h3>
+          <select id="theme-select" class="custom-select">
+            <option value="cyberpunk">Cyberpunk Neon (Indigo / Blue)</option>
+            <option value="emerald">Emerald Matrix (Green)</option>
+            <option value="purple">Royal Purple (Violet)</option>
+            <option value="crimson">Crimson Red (Blood / Gaming)</option>
+            <option value="monochrome">Black & White (Monochrome)</option>
+          </select>
+        </div>
+
+        <!-- UI SCALING -->
+        <div class="setting-section">
+          <h3>UI Scaling</h3>
+          <div class="scale-group">
+            <input type="range" id="scale-slider" min="0.75" max="1.25" step="0.05" value="1">
+            <span id="scale-val">100%</span>
+          </div>
+        </div>
+
+        <!-- SHORTCUTS -->
+        <div class="setting-section">
+          <h3>Manage Shortcuts</h3>
+          <div id="edit-shortcuts-list"></div>
+          <button type="button" id="add-shortcut-btn" class="action-btn-block">+ Add Shortcut</button>
+        </div>
+
+        <!-- STREAMERS -->
+        <div class="setting-section">
+          <h3>Manage Streamers</h3>
+          <div id="edit-streamers-list"></div>
+          <button type="button" id="add-streamer-btn" class="action-btn-block">+ Add Streamer</button>
+        </div>
+
+      </div>
+      <div class="modal-footer">
+        <button type="button" id="save-settings" class="primary-btn">Save Changes</button>
+      </div>
+    </div>
+  </div>
+
+  <script src="app.js"></script>
+</body>
+</html>
