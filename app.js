@@ -340,7 +340,7 @@ function renderStreamersUI() {
       const pageBtn = document.createElement('button');
       pageBtn.className = `page-num-btn `;
       if (p === currentStreamerPage) {
-        pageBtn.classList.add('');
+        pageBtn.classList.add('active');
       }
       pageBtn.textContent = p;
       pageBtn.addEventListener('click', () => {
