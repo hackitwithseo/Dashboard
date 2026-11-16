@@ -338,10 +338,7 @@ function renderStreamersUI() {
   if (totalPages > 1) {
     for (let p = 1; p <= totalPages; p++) {
       const pageBtn = document.createElement('button');
-      pageBtn.className = `page-num-btn `;
-      if (p === currentStreamerPage) {
-        pageBtn.classList.add('active');
-      }
+      pageBtn.className = 'page-num-btn';
       pageBtn.textContent = p;
       pageBtn.addEventListener('click', () => {
         currentStreamerPage = p;
